@@ -1,0 +1,8 @@
+name: Terraform Deployment
+on: push
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: code checkout
+        uses: action/checkout@v4 
