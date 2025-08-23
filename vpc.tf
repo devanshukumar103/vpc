@@ -7,7 +7,7 @@ resource "aws_vpc" "myvpc1" {
   }
 }
 
-Subnet using terraform
+#Subnet using terraform
 resource "aws_subnet" "publicsubnet" {
   vpc_id = aws_vpc.myvpc1.id
   cidr_block = "10.0.1.0/24"
