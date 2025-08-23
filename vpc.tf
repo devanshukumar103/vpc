@@ -1,19 +1,19 @@
 #VPC using terrform
-# resource "aws_vpc" "myvpc" {
-#   cidr_block = "10.0.0.0/16"
-#   tags = {
-#     terraform = "true"
-#     Name = "myvpc"
-#   }
-# }
+resource "aws_vpc" "myvpc1" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    terraform = "true"
+    Name = "myvpc"
+  }
+}
 
-#Subnet using terraform
-# resource "aws_subnet" "publicsubnet" {
-#   vpc_id = aws_vpc.myvpc.id
-#   cidr_block = "10.0.1.0/24"
-#   tags = {
-#     terraform = "true"
-#     Name = "publicsubnet"
-#   }
+Subnet using terraform
+resource "aws_subnet" "publicsubnet" {
+  vpc_id = aws_vpc.myvpc1.id
+  cidr_block = "10.0.1.0/24"
+  tags = {
+    terraform = "true"
+    Name = "publicsubnet"
+  }
 
-# }
+}
