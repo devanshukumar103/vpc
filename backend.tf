@@ -9,7 +9,7 @@
 terraform {
   backend "s3" {
     bucket                = "terraform-states-deva"
-    dynamodb_table          = "terraform-state-lock-init"
+    dynamodb_table          = "use_lockfile"
     encrypt                 = true
     key                     = "network/state.tfstate"
     region                  = "eu-central-1"
