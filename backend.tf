@@ -21,6 +21,7 @@ terraform {
   backend "s3" {
     bucket         = "terraform-states-deva"   # Make sure this bucket already exists
     key            = "network/state.tfstate"
+    region         = "eu-central-1"
     encrypt        = true
     use_lockfile   = true  # replaces dynamodb_table (deprecated)
   }
