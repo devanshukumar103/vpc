@@ -1,8 +1,8 @@
 resource "aws_vpc" "myvpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "10.101.0.0/16"
   tags = {
     terraform = "true"
-    Name = "vpc1"
+    Name = "vpc2"
   }
 }
 
