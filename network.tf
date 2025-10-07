@@ -2,7 +2,7 @@ resource "aws_vpc" "myvpc" {
   cidr_block = "10.0.0.0/16"
   tags = {
     terraform = "true"
-    Name = "vpc2"
+    Name = "vpc1"
   }
 }
 
@@ -11,7 +11,7 @@ resource "aws_subnet" "publicsubnet" {
   cidr_block = "10.0.1.0/24"
   tags = {
     terraform = "true"
-    Name = "subnet2"
+    Name = "subnet1"
   }
 
 }
