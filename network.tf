@@ -2,7 +2,7 @@ resource "aws_vpc" "myvpc" {
   cidr_block = "10.101.0.0/16"
   tags = {
     terraform = "true"
-    Name = "vpc2"
+    Name = "vpc01"
   }
 }
 
@@ -21,21 +21,21 @@ resource "aws_vpc" "myvpc" {
 # ---------------------------
 locals {
   public_subnets = {
-    public-1 = "10.101.12.0/25"
-    public-2 = "10.101.12.128/25"
-    public-3 = "10.101.13.0/25"
+    public-01 = "10.101.12.0/25"
+    public-02 = "10.101.12.128/25"
+    public-03 = "10.101.13.0/25"
   }
 
   private_subnets = {
-    private-1 = "10.101.0.0/22"
-    private-2 = "10.101.4.0/22"
-    private-3 = "10.101.8.0/22"
+    private-01 = "10.101.0.0/22"
+    private-02 = "10.101.4.0/22"
+    private-03 = "10.101.8.0/22"
   }
 
   database_subnets = {
-    database-1 = "10.101.13.128/25"
-    database-2 = "10.101.14.0/25"
-    database-3 = "10.101.14.128/25"
+    database-01 = "10.101.13.128/25"
+    database-02 = "10.101.14.0/25"
+    database-03 = "10.101.14.128/25"
   }
 }
 
