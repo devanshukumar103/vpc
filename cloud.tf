@@ -4,6 +4,7 @@ resource "aws_cloudtrail" "cloudtrail" {
   s3_key_prefix                 = "dev"
   include_global_service_events = false
 }
+data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket" "cloudtrail_bucket" {
   bucket        = "terraform-cloudtrail-${data.aws_caller_identity.current.account_id}"
