@@ -101,7 +101,3 @@ output "rds_endpoint" {
 output "rds_username" {
   value = aws_db_instance.deva_mysql.username
 }
-
-output "rds_db_name" {
-  value = aws_db_instance.deva_mysql.name
-}
