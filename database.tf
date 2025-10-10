@@ -1,103 +1,111 @@
-# ##########################
-# # Subnets (for RDS)
-# ##########################
-# resource "aws_subnet" "public_subnet_1" {
-#   vpc_id                  = aws_vpc.myvpc.id
-#   cidr_block              = "10.101.1.0/24"
-#   availability_zone       = "us-east-1a"
-#   map_public_ip_on_launch = true
-#   tags = {
-#     Name = "public-subnet-1"
-#   }
-# }
+resource "aws_vpc" "myvpc" {
+  cidr_block = "10.101.0.0/16"
+  tags = {
+    terraform = "true"
+    Name = "vpc02"
+  }
+}
 
-# resource "aws_subnet" "public_subnet_2" {
-#   vpc_id                  = aws_vpc.myvpc.id
-#   cidr_block              = "10.101.2.0/24"
-#   availability_zone       = "us-east-1b"
-#   map_public_ip_on_launch = true
-#   tags = {
-#     Name = "public-subnet-2"
-#   }
-# }
+##########################
+# Subnets (for RDS)
+##########################
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id                  = aws_vpc.myvpc.id
+  cidr_block              = "10.101.1.0/24"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "public-subnet-1"
+  }
+}
 
-# ##########################
-# # DB Subnet Group
-# ##########################
-# resource "aws_db_subnet_group" "deva_subnet_group" {
-#   name       = "deva-db-subnet-group"
-#   subnet_ids = [
-#     aws_subnet.public_subnet_1.id,
-#     aws_subnet.public_subnet_2.id
-#   ]
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.myvpc.id
+  cidr_block              = "10.101.2.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "public-subnet-2"
+  }
+}
 
-#   tags = {
-#     Name = "deva-db-subnet-group"
-#   }
-# }
+##########################
+# DB Subnet Group
+##########################
+resource "aws_db_subnet_group" "deva_subnet_group" {
+  name       = "deva-db-subnet-group"
+  subnet_ids = [
+    aws_subnet.public_subnet_1.id,
+    aws_subnet.public_subnet_2.id
+  ]
 
-# ##########################
-# # Security Group for MySQL
-# ##########################
-# resource "aws_security_group" "rds_sg" {
-#   name        = "deva-db-sg"
-#   description = "Allow MySQL access"
-#   vpc_id      = aws_vpc.myvpc.id
+  tags = {
+    Name = "deva-db-subnet-group"
+  }
+}
 
-#   ingress {
-#     description = "MySQL Access"
-#     from_port   = 3306
-#     to_port     = 3306
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"] # ⚠️ For testing only! Restrict in production.
-#   }
+##########################
+# Security Group for MySQL
+##########################
+resource "aws_security_group" "rds_sg" {
+  name        = "deva-db-sg"
+  description = "Allow MySQL access"
+  vpc_id      = aws_vpc.myvpc.id
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+  ingress {
+    description = "MySQL Access"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # ⚠️ For testing only! Restrict in production.
+  }
 
-#   tags = {
-#     Name = "deva-db-sg"
-#   }
-# }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-# ##########################
-# # RDS MySQL Instance (Free Tier)
-# ##########################
-# resource "aws_db_instance" "deva_mysql" {
-#   identifier             = "deva-free-db"
-#   engine                 = "mysql"
-#   engine_version         = "8.0"
-#   instance_class         = "db.t3.micro"   # Free Tier eligible
-#   allocated_storage      = 20
-#   storage_type           = "gp2"
-#   username               = "Deva"
-#   password               = "Indian@123"
+  tags = {
+    Name = "deva-db-sg"
+  }
+}
 
-#   db_subnet_group_name   = aws_db_subnet_group.deva_subnet_group.name
-#   vpc_security_group_ids = [aws_security_group.rds_sg.id]
+##########################
+# RDS MySQL Instance (Free Tier)
+##########################
+resource "aws_db_instance" "deva_mysql" {
+  identifier             = "deva-free-db"
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  instance_class         = "db.t3.micro"   # Free Tier eligible
+  allocated_storage      = 20
+  storage_type           = "gp2"
+  username               = "Deva"
+  password               = "Indian@123"
 
-#   publicly_accessible    = true
-#   multi_az               = false
-#   skip_final_snapshot    = true
-#   deletion_protection    = false
-#   apply_immediately      = true
+  db_subnet_group_name   = aws_db_subnet_group.deva_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
 
-#   tags = {
-#     Name = "deva-free-tier-db"
-#   }
-# }
+  publicly_accessible    = true
+  multi_az               = false
+  skip_final_snapshot    = true
+  deletion_protection    = false
+  apply_immediately      = true
 
-# ##########################
-# # Outputs
-# ##########################
-# output "rds_endpoint" {
-#   value = aws_db_instance.deva_mysql.endpoint
-# }
+  tags = {
+    Name = "deva-free-tier-db"
+  }
+}
 
-# output "rds_username" {
-#   value = aws_db_instance.deva_mysql.username
-# }
+##########################
+# Outputs
+##########################
+output "rds_endpoint" {
+  value = aws_db_instance.deva_mysql.endpoint
+}
+
+output "rds_username" {
+  value = aws_db_instance.deva_mysql.username
+}
