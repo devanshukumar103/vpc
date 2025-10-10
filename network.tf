@@ -1,117 +1,117 @@
-resource "aws_vpc" "myvpc" {
-  cidr_block = "10.101.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-  tags = {
-    terraform = "true"
-    Name = "vpc02"
-  }
-}
+# resource "aws_vpc" "myvpc" {
+#   cidr_block = "10.101.0.0/16"
+#   enable_dns_support   = true
+#   enable_dns_hostnames = true
+#   tags = {
+#     terraform = "true"
+#     Name = "vpc02"
+#   }
+# }
 
-##########################
-# Subnets (for RDS)
-##########################
-resource "aws_subnet" "public_subnet_1" {
-  vpc_id                  = aws_vpc.myvpc.id
-  cidr_block              = "10.101.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "public-subnet-1"
-  }
-}
+# ##########################
+# # Subnets (for RDS)
+# ##########################
+# resource "aws_subnet" "public_subnet_1" {
+#   vpc_id                  = aws_vpc.myvpc.id
+#   cidr_block              = "10.101.1.0/24"
+#   availability_zone       = "us-east-1a"
+#   map_public_ip_on_launch = true
+#   tags = {
+#     Name = "public-subnet-1"
+#   }
+# }
 
-resource "aws_subnet" "public_subnet_2" {
-  vpc_id                  = aws_vpc.myvpc.id
-  cidr_block              = "10.101.2.0/24"
-  availability_zone       = "us-east-1b"
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "public-subnet-2"
-  }
-}
+# resource "aws_subnet" "public_subnet_2" {
+#   vpc_id                  = aws_vpc.myvpc.id
+#   cidr_block              = "10.101.2.0/24"
+#   availability_zone       = "us-east-1b"
+#   map_public_ip_on_launch = true
+#   tags = {
+#     Name = "public-subnet-2"
+#   }
+# }
 
-##########################
-# DB Subnet Group
-##########################
-resource "aws_db_subnet_group" "deva_subnet_group" {
-  name       = "deva-db-subnet-group"
-  subnet_ids = [
-    aws_subnet.public_subnet_1.id,
-    aws_subnet.public_subnet_2.id
-  ]
+# ##########################
+# # DB Subnet Group
+# ##########################
+# resource "aws_db_subnet_group" "deva_subnet_group" {
+#   name       = "deva-db-subnet-group"
+#   subnet_ids = [
+#     aws_subnet.public_subnet_1.id,
+#     aws_subnet.public_subnet_2.id
+#   ]
 
-  tags = {
-    Name = "deva-db-subnet-group"
-  }
-}
+#   tags = {
+#     Name = "deva-db-subnet-group"
+#   }
+# }
 
-##########################
-# Internet Gateway
-##########################
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.myvpc.id
-  tags = {
-    Name = "vpc02-igw"
-  }
-}
+# ##########################
+# # Internet Gateway
+# ##########################
+# resource "aws_internet_gateway" "igw" {
+#   vpc_id = aws_vpc.myvpc.id
+#   tags = {
+#     Name = "vpc02-igw"
+#   }
+# }
 
-##########################
-# Route Table + Associations
-##########################
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.myvpc.id
+# ##########################
+# # Route Table + Associations
+# ##########################
+# resource "aws_route_table" "public_rt" {
+#   vpc_id = aws_vpc.myvpc.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
+#   route {
+#     cidr_block = "0.0.0.0/0"
+#     gateway_id = aws_internet_gateway.igw.id
+#   }
 
-  tags = {
-    Name = "vpc02-public-rt"
-  }
-}
+#   tags = {
+#     Name = "vpc02-public-rt"
+#   }
+# }
 
-##########################
-# Associate Subnets with Route Table
-##########################
-resource "aws_route_table_association" "rt_assoc_1" {
-  subnet_id      = aws_subnet.public_subnet_1.id
-  route_table_id = aws_route_table.public_rt.id
-}
+# ##########################
+# # Associate Subnets with Route Table
+# ##########################
+# resource "aws_route_table_association" "rt_assoc_1" {
+#   subnet_id      = aws_subnet.public_subnet_1.id
+#   route_table_id = aws_route_table.public_rt.id
+# }
 
-resource "aws_route_table_association" "rt_assoc_2" {
-  subnet_id      = aws_subnet.public_subnet_2.id
-  route_table_id = aws_route_table.public_rt.id
-}
+# resource "aws_route_table_association" "rt_assoc_2" {
+#   subnet_id      = aws_subnet.public_subnet_2.id
+#   route_table_id = aws_route_table.public_rt.id
+# }
 
-##########################
-# Security Group for MySQL
-##########################
-resource "aws_security_group" "rds_sg" {
-  name        = "deva-db-sg"
-  description = "Allow MySQL access"
-  vpc_id      = aws_vpc.myvpc.id
+# ##########################
+# # Security Group for MySQL
+# ##########################
+# resource "aws_security_group" "rds_sg" {
+#   name        = "deva-db-sg"
+#   description = "Allow MySQL access"
+#   vpc_id      = aws_vpc.myvpc.id
 
-  ingress {
-    description = "MySQL Access"
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # ⚠️ For testing only
-  }
+#   ingress {
+#     description = "MySQL Access"
+#     from_port   = 3306
+#     to_port     = 3306
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"] # ⚠️ For testing only
+#   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   egress {
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  tags = {
-    Name = "deva-db-sg"
-  }
-}
+#   tags = {
+#     Name = "deva-db-sg"
+#   }
+# }
 
 # # resource "aws_subnet" "publicsubnet" {
 # #   vpc_id = aws_vpc.myvpc.id
