@@ -10,7 +10,7 @@ resource "aws_db_instance" "deva_mysql" {
   allocated_storage      = 20
   storage_type           = "gp2"
   username               = "Deva"
-  password               = "Indian@123"
+  password               = "India123"
 
   db_subnet_group_name   = aws_db_subnet_group.deva_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
