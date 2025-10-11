@@ -7,45 +7,7 @@ resource "aws_vpc" "myvpc" {
      Name = "vpc02"
    }
  }
-
-# ---------------------------
-# Internet Gateway
-# ---------------------------
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.myvpc.id
-
-  tags = {
-    Name      = "vpc02-igw"
-    Terraform = "true"
-  }
-}
-
-# ---------------------------
-# Public Route Table
-# ---------------------------
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.myvpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-
-  tags = {
-    Name      = "public-rt"
-    Terraform = "true"
-  }
-}
-
-# ---------------------------
-# Associate Public Subnets with Route Table
-# ---------------------------
-resource "aws_route_table_association" "public_associations" {
-  for_each       = aws_subnet.public_subnets
-  subnet_id      = each.value.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
+ 
 # ---------------------------
 # Public Subnets (Loop)
 # ---------------------------
@@ -115,5 +77,194 @@ resource "aws_route_table_association" "public_associations" {
    }
  }
 
+#####################
+
+# ---------------------------
+# Internet Gateway
+# ---------------------------
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.myvpc.id
+
+  tags = {
+    Name      = "vpc02-igw"
+    Terraform = "true"
+  }
+}
+
+# ---------------------------
+# Public Route Table
+# ---------------------------
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.myvpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name      = "public-rt"
+    Terraform = "true"
+  }
+}
+
+# ---------------------------
+# Associate Public Subnets with Route Table
+# ---------------------------
+resource "aws_route_table_association" "public_associations" {
+  for_each       = aws_subnet.public_subnets
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+###############
+
+# ---------------------------
+# Public NACL
+# ---------------------------
+resource "aws_network_acl" "public_nacl" {
+  vpc_id = aws_vpc.myvpc.id
+
+  tags = {
+    Name      = "public-nacl"
+    Terraform = "true"
+  }
+}
+
+resource "aws_network_acl_rule" "public_inbound" {
+  network_acl_id = aws_network_acl.public_nacl.id
+  rule_number    = 100
+  egress         = false
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_outbound" {
+  network_acl_id = aws_network_acl.public_nacl.id
+  rule_number    = 100
+  egress         = true
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+# Associate NACL with public subnets
+resource "aws_network_acl_association" "public_nacl_assoc" {
+  for_each       = aws_subnet.public_subnets
+  subnet_id      = each.value.id
+  network_acl_id = aws_network_acl.public_nacl.id
+}
+
+# ---------------------------
+# Private NACL
+# ---------------------------
+resource "aws_network_acl" "private_nacl" {
+  vpc_id = aws_vpc.myvpc.id
+
+  tags = {
+    Name      = "private-nacl"
+    Terraform = "true"
+  }
+}
+
+resource "aws_network_acl_rule" "private_inbound" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 100
+  egress         = false
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "10.101.0.0/16"
+}
+
+resource "aws_network_acl_rule" "private_outbound" {
+  network_acl_id = aws_network_acl.private_nacl.id
+  rule_number    = 100
+  egress         = true
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_association" "private_nacl_assoc" {
+  for_each       = aws_subnet.private_subnets
+  subnet_id      = each.value.id
+  network_acl_id = aws_network_acl.private_nacl.id
+}
+
+# ---------------------------
+# Database NACL
+# ---------------------------
+resource "aws_network_acl" "database_nacl" {
+  vpc_id = aws_vpc.myvpc.id
+
+  tags = {
+    Name      = "database-nacl"
+    Terraform = "true"
+  }
+}
+
+resource "aws_network_acl_rule" "database_inbound" {
+  network_acl_id = aws_network_acl.database_nacl.id
+  rule_number    = 100
+  egress         = false
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "10.101.0.0/16"
+}
+
+resource "aws_network_acl_rule" "database_outbound" {
+  network_acl_id = aws_network_acl.database_nacl.id
+  rule_number    = 100
+  egress         = true
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_association" "database_nacl_assoc" {
+  for_each       = aws_subnet.database_subnets
+  subnet_id      = each.value.id
+  network_acl_id = aws_network_acl.database_nacl.id
+}
+
+#############################
+
+# ---------------------------
+# Security Group
+# ---------------------------
+resource "aws_security_group" "public_sg" {
+  name        = "public-sg"
+  description = "Allow SSH and HTTP"
+  vpc_id      = aws_vpc.myvpc.id
+
+  ingress {
+    description = "SSH from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP from anywhere"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "public-sg"
+    Terraform = "true"
+  }
+}
 
 
