@@ -1,8 +1,20 @@
+# Get existing subnet by its tag Name
+data "aws_subnet" "public_01" {
+  filter {
+    name   = "tag:Name"
+    values = ["public-01"]
+  }
+}
+
+data "aws_security_group" "public_sg" {
+  name    = "public-sg" # Or use id or tags
+  #vpc_id  = ""      # Optional: Helps narrow down the search
+}
 resource "aws_instance" "k8s_ec2" {
   ami           = "ami-0360c520857e3138f"
   instance_type = "t2.micro"  # free-tier eligible
   key_name      = "deva"      # replace with your key pair name
-  subnet_id     = aws_subnet.public_01.id
+  subnet_id     = data.aws_subnet.public_01.id
 
   tags = {
     Name = "k8s-single-node"
@@ -81,56 +93,15 @@ resource "aws_instance" "k8s_ec2" {
     systemctl start kubelet
   EOF
 
-  vpc_security_group_ids = [aws_security_group.k8s_sg.id]
+  vpc_security_group_ids = [data.aws_security_group.public_sg.id]
 }
 
-# Security group
-resource "aws_security_group" "k8s_sg" {
-  name        = "k8s-ec2-sg"
-  description = "Allow SSH and Kubernetes traffic"
+# output "instance_public_ip" {
+#   description = "Public IP of the Kubernetes EC2 instance"
+#   value       = aws_instance.k8s_ec2.public_ip
+# }
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Kubernetes API server
-  }
-
-  ingress {
-    from_port   = 10250
-    to_port     = 10250
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Kubelet API
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-output "instance_public_ip" {
-  description = "Public IP of the Kubernetes EC2 instance"
-  value       = aws_instance.k8s_ec2.public_ip
-}
-
-output "instance_public_dns" {
-  description = "Public DNS of the Kubernetes EC2 instance"
-  value       = aws_instance.k8s_ec2.public_dns
-}
+# output "instance_public_dns" {
+#   description = "Public DNS of the Kubernetes EC2 instance"
+#   value       = aws_instance.k8s_ec2.public_dns
+# }
