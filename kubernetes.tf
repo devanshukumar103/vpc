@@ -1,4 +1,4 @@
-# Get existing subnet by its tag Name
+# Fetch existing subnet
 data "aws_subnet" "public_01" {
   filter {
     name   = "tag:Name"
@@ -6,15 +6,20 @@ data "aws_subnet" "public_01" {
   }
 }
 
+# Fetch existing security group
 data "aws_security_group" "public_sg" {
-  name    = "public-sg" # Or use id or tags
-  #vpc_id  = ""      # Optional: Helps narrow down the search
+  filter {
+    name   = "group-name"
+    values = ["public-sg"]
+  }
 }
+
 resource "aws_instance" "k8s_ec2" {
   ami           = "ami-0360c520857e3138f"
   instance_type = "t2.micro"  # free-tier eligible
-  key_name      = "deva"      # replace with your key pair name
+  key_name      = "deva"
   subnet_id     = data.aws_subnet.public_01.id
+  vpc_security_group_ids = [data.aws_security_group.public_sg.id]
 
   tags = {
     Name = "k8s-single-node"
@@ -23,16 +28,10 @@ resource "aws_instance" "k8s_ec2" {
   user_data = <<-EOF
     #!/bin/bash
     set -e
-
-    # Update system
     apt-get update -y
     apt-get upgrade -y
-
-    # Disable swap (Kubernetes requirement)
     swapoff -a
     sed -i '/ swap / s/^/#/' /etc/fstab
-
-    # Install container runtime (containerd)
     apt-get install -y apt-transport-https ca-certificates curl gpg
     mkdir -p /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -42,66 +41,45 @@ resource "aws_instance" "k8s_ec2" {
       $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
     apt-get update -y
     apt-get install -y containerd.io
-
-    # Configure containerd and enable
     mkdir -p /etc/containerd
     containerd config default | tee /etc/containerd/config.toml
     systemctl restart containerd
     systemctl enable containerd
-
-    # Load required kernel modules
     cat <<EOF1 | tee /etc/modules-load.d/k8s.conf
     overlay
     br_netfilter
     EOF1
-
     modprobe overlay
     modprobe br_netfilter
-
-    # Set sysctl params required by Kubernetes
     cat <<EOF2 | tee /etc/sysctl.d/k8s.conf
     net.bridge.bridge-nf-call-iptables  = 1
     net.bridge.bridge-nf-call-ip6tables = 1
     net.ipv4.ip_forward                 = 1
     EOF2
-
     sysctl --system
-
-    # Install Kubernetes components
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
     apt-get update -y
     apt-get install -y kubelet kubeadm kubectl
     apt-mark hold kubelet kubeadm kubectl
-
-    # Initialize Kubernetes master node (single-node cluster)
     kubeadm init --pod-network-cidr=10.244.0.0/16
-
-    # Set up kubeconfig for ubuntu user
     mkdir -p /home/ubuntu/.kube
     cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
     chown ubuntu:ubuntu /home/ubuntu/.kube/config
-
-    # Apply Flannel CNI
     su - ubuntu -c "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
-
-    # Allow scheduling pods on the control-plane node (make it master + worker)
     su - ubuntu -c "kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true"
-
-    # Enable kubelet service
     systemctl enable kubelet
     systemctl start kubelet
   EOF
-
-  vpc_security_group_ids = [data.aws_security_group.public_sg.id]
 }
 
-# output "instance_public_ip" {
-#   description = "Public IP of the Kubernetes EC2 instance"
-#   value       = aws_instance.k8s_ec2.public_ip
-# }
+output "instance_public_ip" {
+  description = "Public IP of the Kubernetes EC2 instance"
+  value       = aws_instance.k8s_ec2.public_ip
+}
 
-# output "instance_public_dns" {
-#   description = "Public DNS of the Kubernetes EC2 instance"
-#   value       = aws_instance.k8s_ec2.public_dns
-# }
+output "instance_public_dns" {
+  description = "Public DNS of the Kubernetes EC2 instance"
+  value       = aws_instance.k8s_ec2.public_dns
+}
+
