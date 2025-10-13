@@ -20,6 +20,7 @@ resource "aws_instance" "k8s_ec2" {
   key_name      = "deva"
   subnet_id     = data.aws_subnet.public_01.id
   vpc_security_group_ids = [data.aws_security_group.public_sg.id]
+  associate_public_ip_address = true   # <--- ADD THIS LINE
 
   tags = {
     Name = "k8s-single-node"
