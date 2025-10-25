@@ -20,7 +20,7 @@ locals {
 variable "buckets" {
   default = {
     app1 = {
-      bucket_name       = "myapp1"
+      bucket_name       = "myapp1-ashokkumar3398"
       enable_versioning = true
       tags = {
         Owner = "Ashok"
