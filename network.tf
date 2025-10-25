@@ -310,10 +310,3 @@ resource "aws_security_group" "rds_sg" {
     Terraform = "true"
   }
 }
-
-
-output "public_subnets" {
-  description = "List of public subnet IDs"
-  # This handles either count or for_each
-  value       = [for s in aws_subnet.public_subnets : s.id]
-}
