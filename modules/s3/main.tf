@@ -33,3 +33,4 @@ locals {
   # Merge base tags with user-provided tags
   final_tags = merge(local.base_tags, var.custom_tags)
 }
+#
