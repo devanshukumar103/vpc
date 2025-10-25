@@ -41,7 +41,7 @@ module "s3_buckets" {
   source = "./modules/s3"
 
   for_each          = var.buckets
-  #bucket_name       = each.value.bucket_name
-  #enable_versioning = each.value.enable_versioning
-  #custom_tags       = merge(each.value.tags, { Environment = local.environment })
+  bucket_name       = each.value.bucket_name
+  enable_versioning = each.value.enable_versioning
+  custom_tags       = merge(each.value.tags, { Environment = local.environment })
 }
