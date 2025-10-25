@@ -27,7 +27,7 @@ variable "buckets" {
       }
     }
     app2 = {
-      bucket_name       = "myapp2"
+      bucket_name       = "myapp2-ashokkumar3398"
       enable_versioning = false
       tags = {
         Owner = "Team-Cloud"
