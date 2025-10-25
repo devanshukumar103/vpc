@@ -1,36 +1,33 @@
 resource "aws_s3_bucket" "this" {
-  bucket = var.bucket_name
+  # Append workspace name to bucket for uniqueness
+  bucket = lower("${var.bucket_name}-${terraform.workspace}")
 
-  # Apply dynamic tagging logic using the custom tag "function"
-  tags = local.final_tags
+  tags = local.function_tags
+}
 
-  # Enable versioning if specified
-  dynamic "versioning" {
+# ------------------------
+# Dynamic Block for Versioning
+# ------------------------
+resource "aws_s3_bucket_versioning" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  versioning_configuration {
+    status = var.enable_versioning ? "Enabled" : "Suspended"
+  }
+}
+
+# ------------------------
+# Example Dynamic Encryption Configuration (optional)
+# ------------------------
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  bucket = aws_s3_bucket.this.bucket
+
+  dynamic "rule" {
     for_each = var.enable_versioning ? [1] : []
     content {
-      enabled = true
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
     }
   }
 }
-
-# Optional: enable S3 bucket ownership controls or encryption
-resource "aws_s3_bucket_ownership_controls" "this" {
-  bucket = aws_s3_bucket.this.id
-
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
-
-locals {
-  # Base tags (standard organization tags)
-  base_tags = {
-    ManagedBy   = "Terraform"
-    Application = "S3-Module"
-    CreatedOn   = formatdate("YYYY-MM-DD", timestamp())
-  }
-
-  # Merge base tags with user-provided tags
-  final_tags = merge(local.base_tags, var.custom_tags)
-}
-#
