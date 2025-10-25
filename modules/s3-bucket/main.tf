@@ -1,7 +1,7 @@
 # modules/s3-bucket/main.tf
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
-  acl    = var.acl
+  #acl = var.acl
 
   tags = var.tags
 
