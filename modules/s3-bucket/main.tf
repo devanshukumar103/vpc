@@ -1,6 +1,6 @@
 # modules/s3-bucket/main.tf
 resource "aws_s3_bucket_acl" "this" {
-  bucket = var.bucket_name
+  bucket = aws_s3_bucket_acl.this.id
   acl    = var.acl
 
   tags = var.tags
@@ -12,8 +12,6 @@ resource "aws_s3_bucket_acl" "this" {
       enabled = true
     }
   }
-
-  # Add other S3 bucket configurations as needed (e.g., server-side encryption, lifecycle rules)
 }
 
 # // If specific ACLs are needed, use the aws_s3_bucket_acl resource
