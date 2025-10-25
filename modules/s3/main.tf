@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "this" {
 
   tags = local.function_tags
 }
-#
+
 # ------------------------
 # Dynamic Block for Versioning
 # ------------------------
