@@ -5,13 +5,8 @@ output "vpc_id" {
   value       = aws_vpc.myvpc.id
 }
 
-output "public_subnets" {
+output "public_subnet" {
   description = "List of public subnet IDs"
   # This handles either count or for_each
   value       = [for s in aws_subnet.public_subnets : s.id]
-}
-
-output "private_subnets" {
-  description = "List of private subnet IDs"
-  value       = [for s in aws_subnet.private_subnets : s.id]
 }
