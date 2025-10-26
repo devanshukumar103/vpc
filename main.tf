@@ -46,4 +46,4 @@ module "s3_buckets" {
   enable_versioning = each.value.enable_versioning
   custom_tags       = merge(each.value.tags, { Environment = local.environment })
 }
-##
+#

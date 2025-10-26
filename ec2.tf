@@ -7,7 +7,7 @@ data "terraform_remote_state" "network" {
     region = "us-east-1"
   }
 }
-#
+
 # Example: Create an EC2 instance in that VPC
 resource "aws_instance" "app" {
   ami           = "ami-0c55b159cbfafe1f0"
