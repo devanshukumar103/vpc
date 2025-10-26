@@ -1,5 +1,5 @@
 module "s3_bucket" {
-  source = "./modules/s30"
+  source = "./modules/s3-bucket"
 
   bucket_name       = "myapp-dev-bucket-ashokkumar"
   enable_versioning = true
