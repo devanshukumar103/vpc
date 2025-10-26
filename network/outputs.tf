@@ -10,3 +10,4 @@ output "public_subnet" {
   # This handles either count or for_each
   value       = [for s in aws_subnet.public_subnets : s.id]
 }
+#
