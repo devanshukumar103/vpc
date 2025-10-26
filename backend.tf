@@ -1,12 +1,3 @@
-# terraform {
-#   backend "s3" {
-#     bucket = "deva-tfstate"
-#     key    = "terraform.tfstate"
-#     region = "us-east-1"
-#   }
-# }
-
-
 terraform {
    backend "s3" {
      bucket         = "deva-tfstate"   # Make sure this bucket already exists

@@ -7,11 +7,6 @@ terraform {
   }
 }
 
-# provider "aws" {
-#   region = "ap-south-1"
-# }
-#
-
 locals {
   # Define workspace-aware environment
   environment = terraform.workspace
