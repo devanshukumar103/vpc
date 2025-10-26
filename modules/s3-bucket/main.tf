@@ -13,24 +13,13 @@ resource "aws_s3_bucket" "this" {
   }
 }
 
-# Optional: enable S3 bucket ownership controls or encryption
-resource "aws_s3_bucket_ownership_controls" "this" {
-  bucket = aws_s3_bucket.this.id
-
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
-
 locals {
   # Base tags (standard organization tags)
   base_tags = {
     ManagedBy   = "Terraform"
     Application = "S3-Module"
-    CreatedOn   = formatdate("YYYY-MM-DD", timestamp())
   }
 
   # Merge base tags with user-provided tags
   final_tags = merge(local.base_tags, var.custom_tags)
 }
-#
